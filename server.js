@@ -1,3 +1,4 @@
+require ('dotenv').config()
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
@@ -20,7 +21,7 @@ app.use(express.static('public'));
 // Session configuration
 app.use(session({
     name: 'authSession',
-    secret: 'your-secret-key-change-in-production',
+    secret: process.env.SESSION_SECRET /*'your-secret-key-change-in-production'*/,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -32,8 +33,10 @@ app.use(session({
 
 // Predefined credentials
 const CREDENTIALS = {
-    username: 'ADMIN',
-    password: 'pswrd123'
+   /* username: 'ADMIN',
+    password: 'pswrd123'*/
+    username: process.env.ADMIN_USER,
+    password: process.env.ADMIN_PASS
 };
 
 // Middleware to check authentication
