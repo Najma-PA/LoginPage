@@ -6,52 +6,52 @@ const bodyParser = require('body-parser');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 // Set EJS as template engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Middleware
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(cookieParser());
-app.use(express.static('public'));
+app.use(bodyParser.urlencoded({ extended: true })); // read form submission
+app.use(bodyParser.json()); //read json data
+app.use(cookieParser()); //read cookies
+app.use(express.static('public')); //serve css,js images
 
 // Session configuration
 app.use(session({
-    name: 'authSession',
-    secret: process.env.SESSION_SECRET /*'your-secret-key-change-in-production'*/,
-    resave: false,
-    saveUninitialized: false,
+    name: 'authSession', //name of the cookie
+    secret: process.env.SESSION_SECRET , //encrypt session
+    resave: false, //prevents unecessary saving
+    saveUninitialized: false, // doesn't create session until login
     cookie: {
-        secure: false, // Set to true if using HTTPS
-        httpOnly: true,
+        secure: false, // true if using HTTPS
+        httpOnly: true, //JS in browser cannot access cookie(security)
         maxAge: 30 * 60 * 1000 // 30 minutes
     }
 }));
 
-// Predefined credentials
+// Storing username & password in env(secure)
 const CREDENTIALS = {
-   /* username: 'ADMIN',
-    password: 'pswrd123'*/
+
     username: process.env.ADMIN_USER,
     password: process.env.ADMIN_PASS
 };
 
-// Middleware to check authentication
+// Authentication middleware
 const requireAuth = (req, res, next) => {
-    if (req.session.isAuthenticated) {
-        // Update session expiration on each request
+    if (req.session.isAuthenticated) { 
+        //Refresh session expiry time
         req.session._garbage = Date();
         req.session.touch();
         next();
     } else {
-        res.redirect('/');
+        res.redirect('/'); //redirect to login page
     }
 };
 
 // Prevent caching middleware
+// back button management
 const noCache = (req, res, next) => {
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.set('Pragma', 'no-cache');
@@ -103,12 +103,12 @@ app.post('/logout', noCache, (req, res) => {
         
         res.clearCookie('authSession');
 
-        res.redirect('/?cleared=true');
+        res.redirect('/'); 
     });
 });
 
 // API endpoint to check session status
-app.get('/api/session-status', noCache, (req, res) => {
+app.get('/api/session-status', noCache, (req, res) => {                     
     res.json({
         isAuthenticated: !!req.session.isAuthenticated,
         username: req.session.username,
